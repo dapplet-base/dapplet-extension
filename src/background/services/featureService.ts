@@ -1,12 +1,14 @@
+import * as extension from 'extensionizer';
+import * as ethers from 'ethers';
+import CID from 'cids';
+import multihashes from 'multihashes';
 import ManifestDTO from '../dto/manifestDTO';
 import SiteConfigBrowserStorage from '../browserStorages/siteConfigBrowserStorage';
 import ModuleManager from '../utils/moduleManager';
-import * as extension from 'extensionizer';
 import Manifest from '../models/manifest';
 import { StorageAggregator } from '../moduleStorages/moduleStorage';
 import GlobalConfigService from './globalConfigService';
 import { areModulesEqual, typeOfUri, UriTypes } from '../../common/helpers';
-import * as ethers from 'ethers';
 
 export default class FeatureService {
     private _siteConfigRepository = new SiteConfigBrowserStorage();
@@ -125,32 +127,24 @@ export default class FeatureService {
         // Dist file publishing
         const dist = await this._storageAggregator.getResource(defaultManifest.dist);
         const distBlob = new Blob([dist], { type: "text/javascript" });
-        const distUrl = (targetStorage === 'test-registry') ? await saveToTestRegistry(distBlob, targetRegistry) : await saveToSwarm(distBlob);
-
-        // Dist file  hashing
-        const distBuffer = await (distBlob as any).arrayBuffer();
-        const distHash = ethers.utils.keccak256(new Uint8Array(distBuffer)).substring(2);
+        const distCid = (targetStorage === 'test-registry') ? await saveToTestRegistry(distBlob, targetRegistry) : await saveToSwarm(distBlob);
 
         // Manifest editing
-        defaultManifest.dist = distUrl + '#' + distHash;
+        defaultManifest.dist = distCid.toString();
 
         // Manifest publishing
         const manifestString = JSON.stringify(defaultManifest);
         const manifestBlob = new Blob([manifestString], { type: "application/json" });
-        const manifestUrl = (targetStorage === 'test-registry') ? await saveToTestRegistry(manifestBlob, targetRegistry) : await saveToSwarm(manifestBlob);
-        
-        // Manifest hashing
-        const manifestBuffer = await (manifestBlob as any).arrayBuffer();
-        const manifestHash = ethers.utils.keccak256(new Uint8Array(manifestBuffer)).substring(2);
+        const manifestCid = (targetStorage === 'test-registry') ? await saveToTestRegistry(manifestBlob, targetRegistry) : await saveToSwarm(manifestBlob);
 
         // Register manifest in Registry
         const registry = this._moduleManager.registryAggregator.getRegistryByUri(targetRegistry);
-        if (!registry) throw new Error("No registry with this url exists in config.");    
-        await registry.addModule(defaultManifest.name, defaultManifest.branch, defaultManifest.version, manifestUrl + '#' + manifestHash, registryKey);
+        if (!registry) throw new Error("No registry with this url exists in config.");
+        await registry.addModule(defaultManifest.name, defaultManifest.branch, defaultManifest.version, manifestCid, registryKey);
 
         return {
-            manifestUrl: manifestUrl + '#' + manifestHash,
-            scriptUrl: distUrl + '#' + distHash
+            manifestUrl: manifestCid.toString(),
+            scriptUrl: distCid.toString()
         };
     }
 
@@ -169,7 +163,7 @@ export default class FeatureService {
     }
 }
 
-async function saveToTestRegistry(blob: Blob, registryUrl: string) {
+async function saveToTestRegistry(blob: Blob, registryUrl: string): Promise<CID> {
     var form = new FormData();
     form.append('file', blob);
 
@@ -180,18 +174,20 @@ async function saveToTestRegistry(blob: Blob, registryUrl: string) {
 
     const json = await response.json();
     if (!json.success) throw new Error(json.message || "Error in saveToStorage");
-    const url = `${registryUrl}/storage/${json.data}`;
-    return url;
+    const cid = new CID(json.data);
+    return cid;
 }
 
-async function saveToSwarm(blob: Blob) {
+async function saveToSwarm(blob: Blob): Promise<CID> {
     const response = await fetch("https://swarm-gateways.net/bzz:/", {
         method: 'POST',
         body: blob
     });
 
-    const text = await response.text();
-    if (text.length !== 64) throw new Error("Swarm gateway returned invalid hash.");
-    const url = "bzz://" + text;
-    return url;
+    const swarmAddress = await response.text();
+    if (swarmAddress.length !== 64) throw new Error("Swarm gateway returned invalid hash.");
+
+    const multihash = multihashes.encode(Buffer.from(swarmAddress, 'hex'), 'keccak-256');
+    const cid = new CID(1, 'swarm-manifest', multihash);
+    return cid;
 }

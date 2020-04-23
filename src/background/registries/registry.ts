@@ -1,3 +1,5 @@
+import CID from 'cids';
+
 export interface Registry {
     isAvailable: boolean;
     error: string;
@@ -5,7 +7,7 @@ export interface Registry {
     
     getVersions(name: string, branch: string): Promise<string[]>;
 
-    resolveToUri(name: string, branch: string, version: string): Promise<string[]>;
+    resolveToUri(name: string, branch: string, version: string): Promise<CID[]>;
 
     // ToDo: add params limit: number, settings: any
     // no more than 100, order
@@ -13,5 +15,5 @@ export interface Registry {
 
     getAllDevModules(): Promise<{ name: string, branch: string, version: string }[]>;
     
-    addModule(name: string, branch: string, version: string, uri: string, key?: string): Promise<void>;
+    addModule(name: string, branch: string, version: string, cid: CID, key?: string): Promise<void>;
 }

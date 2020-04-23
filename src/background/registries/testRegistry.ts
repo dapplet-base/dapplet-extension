@@ -1,3 +1,4 @@
+import CID from 'cids';
 import { Registry } from './registry';
 
 export class TestRegistry implements Registry {
@@ -25,15 +26,15 @@ export class TestRegistry implements Registry {
         }
     }
 
-    public async resolveToUri(name: string, branch: string, version: string): Promise<string[]> {
+    public async resolveToUri(name: string, branch: string, version: string): Promise<CID[]> {
         try {
             const response = await fetch(`${this.url}/registry/resolve-to-uri?name=${name}&branch=${branch}&version=${version}`);
             if (!response.ok) throw Error(response.statusText);
             const json = await response.json();
-            const uris = json.data;
+            const rawCids = json.data;
             this.isAvailable = true;
             this.error = null;
-            return uris;
+            return rawCids.map(rawCid => new CID(rawCid));
         } catch (err) {
             this.isAvailable = false;
             this.error = err.message;
@@ -61,8 +62,9 @@ export class TestRegistry implements Registry {
         return Promise.resolve([]);
     }
 
-    public async addModule(name: string, branch: string, version: string, uri: string, key: string): Promise<void> {
-        const response = await fetch(`${this.url}/registry/add-module?uri=${encodeURIComponent(uri)}&key=${key}`, {
+    // ToDo: remove key parameter
+    public async addModule(name: string, branch: string, version: string, cid: CID, key: string): Promise<void> {
+        const response = await fetch(`${this.url}/registry/add-module?uri=${encodeURIComponent(cid.toString())}&key=${key}`, {
             method: 'POST'
         });
 

@@ -135,6 +135,45 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                         ))}
                     </List>
 
+                    <Header as='h4'>Storages</Header>
+                    <Input
+                        size='mini'
+                        icon='code'
+                        iconPosition='left'
+                        action={{
+                            content: 'Add',
+                            size: 'mini',
+                            onClick: () => this.addRegistry(registryInput),
+                            disabled: !(isValidUrl(registryInput) && !registries.find(r => r.url === registryInput)),
+                            color: 'blue'
+                        }}
+                        fluid
+                        placeholder='Storage address'
+                        value={registryInput}
+                        onChange={(e) => this.setState({ registryInput: e.target.value, registryInputError: null })}
+                        error={!!registryInputError}
+                    />
+
+                    {(registryInputError) ? <Label basic color='red' pointing>{registryInputError}</Label> : null}
+
+                    <List divided relaxed size='small'>
+                        {registries.map((r, i) => (
+                            <List.Item key={i}>
+                                <List.Content floated='left'>
+                                    <Popup
+                                        trigger={<Label size='mini' horizontal color={(r.isAvailable) ? 'green' : 'red'}>{(r.isAvailable) ? 'ONLINE' : (r.error) ? 'ERROR' : 'OFFLINE'}</Label>}
+                                        content={r.error || 'Ready'}
+                                        size='mini'
+                                    />
+                                </List.Content>
+                                <List.Content floated='right'>
+                                    <Icon link color='red' name='close' onClick={() => this.removeRegistry(r.url)} />
+                                </List.Content>
+                                <List.Content><a style={{color:'#000'}} onClick={() => window.open(r.url, '_blank')}>{r.url}</a></List.Content>
+                            </List.Item>
+                        ))}
+                    </List>
+
                     <Header as='h4'>Advanced</Header>
                     <Checkbox toggle label='Development Mode' checked={devMode} onChange={() => this.setDevMode(!devMode)} />
                 </Segment>

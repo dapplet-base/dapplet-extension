@@ -1,9 +1,9 @@
+import { gt, compare } from 'semver';
 import { Registry } from './registry';
 import { DevRegistry } from './devRegistry';
 import { TestRegistry } from './testRegistry';
 import { EthRegistry } from './ethRegistry';
 import GlobalConfigService from '../services/globalConfigService';
-import { gt, compare } from 'semver';
 import { mergeDedupe, typeOfUri, UriTypes } from '../../common/helpers';
 
 export class RegistryAggregator {

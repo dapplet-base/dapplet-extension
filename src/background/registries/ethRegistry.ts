@@ -1,6 +1,7 @@
 import { Registry } from './registry';
 import abi from './ethRegistryAbi';
 import * as ethers from "ethers";
+import CID from 'cids';
 import { WalletConnectSigner } from '../utils/walletConnectSigner';
 
 export class EthRegistry implements Registry {
@@ -30,12 +31,12 @@ export class EthRegistry implements Registry {
         }
     }
 
-    public async resolveToUri(name: string, branch: string, version: string): Promise<string[]> {
+    public async resolveToUri(name: string, branch: string, version: string): Promise<CID[]> {
         try {
-            const uris = await this._contract.resolveToUri(name, branch, version);
+            const rawCids = await this._contract.resolveToUri(name, branch, version);
             this.isAvailable = true;
             this.error = null;
-            return uris;
+            return rawCids.map(rawCid => new CID(rawCid));
         } catch (err) {
             this.isAvailable = false;
             this.error = err.message;
@@ -69,8 +70,8 @@ export class EthRegistry implements Registry {
         return Promise.resolve([]);
     }
 
-    public async addModule(name: string, branch: string, version: string, uri: string): Promise<void> {
-        const tx = await this._contract.addModule(name, branch, version, uri);
+    public async addModule(name: string, branch: string, version: string, cid: CID): Promise<void> {
+        const tx = await this._contract.addModule(name, branch, version, cid.buffer);
 
         await new Promise((resolve, reject) => {
             this._contract.on("ModuleAdded", (name, branch, verison, uri, event) => {

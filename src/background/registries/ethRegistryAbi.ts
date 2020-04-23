@@ -22,16 +22,15 @@ export default [
             },
             {
                 "indexed": false,
-                "internalType": "string",
-                "name": "uri",
-                "type": "string"
+                "internalType": "bytes",
+                "name": "cid",
+                "type": "bytes"
             }
         ],
         "name": "ModuleAdded",
         "type": "event"
     },
     {
-        "constant": true,
         "inputs": [
             {
                 "internalType": "string",
@@ -52,12 +51,11 @@ export default [
                 "type": "string[]"
             }
         ],
-        "payable": false,
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
+        "constant": true
     },
     {
-        "constant": true,
         "inputs": [
             {
                 "internalType": "string",
@@ -78,17 +76,16 @@ export default [
         "name": "resolveToUri",
         "outputs": [
             {
-                "internalType": "string[]",
+                "internalType": "bytes[]",
                 "name": "",
-                "type": "string[]"
+                "type": "bytes[]"
             }
         ],
-        "payable": false,
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
+        "constant": true
     },
     {
-        "constant": true,
         "inputs": [
             {
                 "internalType": "string",
@@ -104,12 +101,11 @@ export default [
                 "type": "string[]"
             }
         ],
-        "payable": false,
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
+        "constant": true
     },
     {
-        "constant": false,
         "inputs": [
             {
                 "internalType": "string",
@@ -127,19 +123,17 @@ export default [
                 "type": "string"
             },
             {
-                "internalType": "string",
-                "name": "uri",
-                "type": "string"
+                "internalType": "bytes",
+                "name": "cid",
+                "type": "bytes"
             }
         ],
         "name": "addModule",
         "outputs": [],
-        "payable": false,
         "stateMutability": "nonpayable",
         "type": "function"
     },
     {
-        "constant": false,
         "inputs": [
             {
                 "components": [
@@ -159,9 +153,9 @@ export default [
                         "type": "string"
                     },
                     {
-                        "internalType": "string",
-                        "name": "uri",
-                        "type": "string"
+                        "internalType": "bytes",
+                        "name": "cid",
+                        "type": "bytes"
                     }
                 ],
                 "internalType": "struct DappletRegistry.AddModuleInput[]",
@@ -171,12 +165,10 @@ export default [
         ],
         "name": "addModules",
         "outputs": [],
-        "payable": false,
         "stateMutability": "nonpayable",
         "type": "function"
     },
     {
-        "constant": false,
         "inputs": [
             {
                 "internalType": "string",
@@ -191,12 +183,10 @@ export default [
         ],
         "name": "addLocation",
         "outputs": [],
-        "payable": false,
         "stateMutability": "nonpayable",
         "type": "function"
     },
     {
-        "constant": false,
         "inputs": [
             {
                 "components": [
@@ -218,12 +208,10 @@ export default [
         ],
         "name": "addLocations",
         "outputs": [],
-        "payable": false,
         "stateMutability": "nonpayable",
         "type": "function"
     },
     {
-        "constant": false,
         "inputs": [
             {
                 "internalType": "string",
@@ -238,12 +226,10 @@ export default [
         ],
         "name": "removeLocation",
         "outputs": [],
-        "payable": false,
         "stateMutability": "nonpayable",
         "type": "function"
     },
     {
-        "constant": true,
         "inputs": [
             {
                 "internalType": "string",
@@ -264,8 +250,8 @@ export default [
                 "type": "bool"
             }
         ],
-        "payable": false,
         "stateMutability": "pure",
-        "type": "function"
+        "type": "function",
+        "constant": true
     }
 ]

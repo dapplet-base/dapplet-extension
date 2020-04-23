@@ -1,3 +1,5 @@
+import CID from "cids";
+
 export interface Storage {
-    getResource(uri: string): Promise<ArrayBuffer>;
+    getResource(cid: CID): Promise<ArrayBuffer>;
 }

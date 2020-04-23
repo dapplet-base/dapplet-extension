@@ -1,3 +1,4 @@
+import CID from 'cids';
 import { Registry } from './registry';
 import { DEFAULT_BRANCH_NAME } from '../../common/constants';
 
@@ -25,7 +26,7 @@ export class DevRegistry implements Registry {
         return versions;
     }
 
-    public async resolveToUri(name: string, branch: string, version: string): Promise<string[]> {
+    public async resolveToUri(name: string, branch: string, version: string): Promise<CID[]> {
         await this._cacheDevConfig();
         const { modules } = this._devConfig;
 
@@ -35,7 +36,8 @@ export class DevRegistry implements Registry {
 
         const uri = new URL(this._devConfig.modules[name][branch][version], this._rootUrl).href;
 
-        return [uri];
+        // ToDo: check it. probably an error is here
+        return [new CID(uri)];
     }
 
     public async getFeatures(hostnames: string[]): Promise<{ [hostname: string]: { [name: string]: string[]; } }> {
@@ -91,7 +93,7 @@ export class DevRegistry implements Registry {
         //}
     }
 
-    public async addModule(name: string, branch: string, version: string, uri: string): Promise<void> {
+    public async addModule(name: string, branch: string, version: string, cid: CID): Promise<void> {
         throw new Error("Development Registry doesn't support a module deployment.");
     }
 }

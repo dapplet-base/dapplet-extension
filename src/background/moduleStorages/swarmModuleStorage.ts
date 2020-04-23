@@ -1,12 +1,15 @@
-import { Storage as ModuleStorage } from './storage';
 import * as ethers from 'ethers';
+import CID from 'cids';
+import multihashing from 'multihashing-async';
+import multihashes from 'multihashes';
+
+import { Storage as ModuleStorage } from './storage';
 
 export class SwarmModuleStorage implements ModuleStorage {
-    public async getResource(uri: string): Promise<ArrayBuffer> {
-        const url = new URL(uri);
-        const expectedHash = url.hash.substring(1);
-
-        const response = await fetch("https://swarm-gateways.net/" + uri);
+    public async getResource(cid: CID): Promise<ArrayBuffer> {
+        const multihash = multihashes.decode(cid.multihash);
+        const swarmAddress = multihash.digest.toString('hex');
+        const response = await fetch(`https://swarm-gateways.net/bzz:/${swarmAddress}`);
 
         if (!response.ok) {
             throw new Error(`HttpStorage can't load resource by URI ${uri}`);
