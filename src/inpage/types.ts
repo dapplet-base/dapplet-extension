@@ -10,8 +10,8 @@ export interface IFeature extends IModule {
     orderIndex?: number;
 
     config: any;
-    activate(): void;
-    deactivate(): void;
+    activate?(): void;
+    deactivate?(): void;
 }
 
 export interface IResolver extends IModule {

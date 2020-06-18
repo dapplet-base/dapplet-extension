@@ -16,7 +16,8 @@ export class Injector {
         clazz: any,
         instance?: any,
         order: number,
-        contextIds: string[]
+        contextIds: string[],
+        adapters: IContentAdapter[];
     }[] = [];
 
     constructor(public core: Core) {
@@ -53,14 +54,15 @@ export class Injector {
             const isNeedToActivate = !!modules.find(m => areModulesEqual(m, this.registry[i].manifest));
 
             if (isFeature && isNeedToActivate) {
-                const feature: IFeature = this.registry[i].instance;
-                feature.orderIndex = this.registry[i].order;
+                const featureModule = this.registry[i];
+                const featureInstance: IFeature = featureModule.instance;
+                featureInstance.orderIndex = featureModule.order;
                 // ToDo: fix context ids adding
-                feature.contextIds = this.registry[i].contextIds.map(id => {
+                featureInstance.contextIds = featureModule.contextIds.map(id => {
                     const [headContextId, ...tailContextId] = id.split('/'); // ToDo: check head?
                     return tailContextId.join('/');
                 }).filter(id => !!id);
-                feature.activate();
+                featureModule.adapters.forEach(a => a.attachFeature(featureInstance));
             }
         }
     }
@@ -68,7 +70,7 @@ export class Injector {
     public async unloadModules(modules: { name: string, branch: string, version: string }[]) {
         modules.map(m => this.registry.find(r => areModulesEqual(m, r.manifest))).forEach(m => {
             if (!m) return;
-            m.instance.deactivate();
+            m.adapters.forEach(a => a.detachFeature(m.instance));
             console.log(`The module ${m.manifest.name}#${m.manifest.branch}@${m.manifest.version} was unloaded.`);
             this.registry = this.registry.filter(r => r !== m);
         });
@@ -78,15 +80,15 @@ export class Injector {
         const { optimizeDependency, getModulesWithDeps, addEvent } = await initBGFunctions(extension);
         const { core } = this;
 
-        for (const { manifest, script, order, contextIds } of modules) {
+        for (const md of modules) {
             // Module is loaded already
-            const registeredModule = this.registry.find(m => areModulesEqual(m.manifest, manifest));
+            const registeredModule = this.registry.find(m => areModulesEqual(m.manifest, md.manifest));
             if (registeredModule) {
-                if (contextIds) {
+                if (md.contextIds) {
                     if (registeredModule.contextIds) {
-                        registeredModule.contextIds.push(...contextIds);
+                        registeredModule.contextIds.push(...md.contextIds);
                     } else {
-                        registeredModule.contextIds = [...contextIds];
+                        registeredModule.contextIds = [...md.contextIds];
                     }
                 }
                 continue;
@@ -103,7 +105,7 @@ export class Injector {
                 wallet: core.wallet.bind(core)
             };
 
-            const execScript = new Function('Core', 'SubscribeOptions', 'Inject', 'Injectable', script);
+            const execScript = new Function('Core', 'SubscribeOptions', 'Inject', 'Injectable', md.script);
             let newBranch: string = null;
 
             // ToDo: describe it
@@ -111,13 +113,14 @@ export class Injector {
                 if (constructor.prototype.getBranch) {
                     const resolver: IResolver = new constructor();
                     newBranch = resolver.getBranch();
-                } else if (!this.registry.find(m => areModulesEqual(m.manifest, manifest))) {
+                } else if (!this.registry.find(m => areModulesEqual(m.manifest, md.manifest))) {
                     this.registry.push({
-                        manifest: manifest,
+                        manifest: md.manifest,
                         clazz: constructor,
                         instance: null,
-                        order: order,
-                        contextIds: contextIds
+                        order: md.order,
+                        contextIds: md.contextIds,
+                        adapters: []
                     });
                 }
             };
@@ -126,15 +129,15 @@ export class Injector {
             const injectDecorator = (name: string) => (target, propertyKey: string, descriptor: PropertyDescriptor) => {
                 descriptor = descriptor || {};
                 descriptor.get = () => {
-                    const dependency = manifest.dependencies[name];
+                    const dependency = md.manifest.dependencies[name];
 
                     if (dependency === undefined) {
-                        console.error(`Module "${name}" doesn't exist in the manifest of "${manifest.name}"`);
+                        console.error(`Module "${name}" doesn't exist in the manifest of "${md.manifest.name}"`);
                         return null;
                     }
 
                     if (valid(dependency as string) === null) {
-                        console.error(`Invalid semver version (${dependency}) of module "${name}" in the manifest of "${manifest.name}"`);
+                        console.error(`Invalid semver version (${dependency}) of module "${name}" in the manifest of "${md.manifest.name}"`);
                         return null;
                     }
 
@@ -156,6 +159,11 @@ export class Injector {
                     const maxVer = maxSatisfying(modules.map(m => m.manifest.version), range);
 
                     const module = modules.find(m => m.manifest.version == maxVer);
+                    if (md.manifest.type === ModuleTypes.Feature && module.manifest.type === ModuleTypes.Adapter) {
+                        const featureModule = this.registry.find(m => areModulesEqual(m.manifest, md.manifest));
+                        if (!featureModule.adapters) featureModule.adapters = [];
+                        featureModule.adapters.push(module.instance);
+                    }
                     return module.instance;
                 }
                 return descriptor;
@@ -164,9 +172,9 @@ export class Injector {
             execScript(coreWrapper, SubscribeOptions, injectDecorator, injectableDecorator);
 
             if (newBranch) {
-                addEvent('Branch resolving', `Resolver of "${manifest.name}" defined the "${newBranch}" branch`);
-                const optimizedBranch = await optimizeDependency(manifest.name, newBranch, manifest.version, contextIds);
-                const missingDependencies = await getModulesWithDeps([{...optimizedBranch, contextIds: contextIds }]);
+                addEvent('Branch resolving', `Resolver of "${md.manifest.name}" defined the "${newBranch}" branch`);
+                const optimizedBranch = await optimizeDependency(md.manifest.name, newBranch, md.manifest.version, md.contextIds);
+                const missingDependencies = await getModulesWithDeps([{...optimizedBranch, contextIds: md.contextIds }]);
                 await this._processModules(missingDependencies);
             }
         }

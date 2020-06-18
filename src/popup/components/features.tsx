@@ -128,9 +128,8 @@ class Features extends React.Component<IFeaturesProps, IFeaturesState> {
                         {(f.sourceRegistry.isDev) ? (<Label style={{ marginLeft: 5 }} horizontal size='mini' color='teal'>DEV</Label>) : null}
                       </List.Header>
                       <List.Description style={{ color: "#666" }}>
-                        {f.description}<br />
-                        Author: {f.author}<br />
-                        {/* Version: {f.version} */}
+                        {f.description}
+                        {f.sourceRegistry.isDev ? null : <React.Fragment><br/>Author: {f.author}</React.Fragment>}
                       </List.Description>
                     </List.Content>
                   </List.Item>
