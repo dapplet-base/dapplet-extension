@@ -1,6 +1,7 @@
 export interface IModule { }
 
-export interface IContentAdapter extends IModule {
+export interface IContentAdapter<IConfig> extends IModule {
+    addFeature(config: IConfig, feature?: IFeature): void;
     attachFeature(feature: IFeature): void;
     detachFeature(feature: IFeature): void;
 }

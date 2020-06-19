@@ -17,7 +17,7 @@ export class Injector {
         instance?: any,
         order: number,
         contextIds: string[],
-        adapters: IContentAdapter[];
+        adapters: IContentAdapter<any>[];
     }[] = [];
 
     constructor(public core: Core) {
