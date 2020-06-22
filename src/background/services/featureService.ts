@@ -12,6 +12,8 @@ import { DEFAULT_BRANCH_NAME, StorageTypes } from '../../common/constants';
 import { rcompare } from 'semver';
 import ModuleInfo from '../models/moduleInfo';
 import VersionInfo from '../models/versionInfo';
+import { SwarmModuleStorage } from '../moduleStorages/swarmModuleStorage';
+import { HttpModuleStorage } from '../moduleStorages/httpModuleStorage';
 
 export default class FeatureService {
     private _siteConfigRepository = new SiteConfigBrowserStorage();
@@ -155,11 +157,13 @@ export default class FeatureService {
     public async deployModule(mi: ModuleInfo, vi: VersionInfo, targetStorage: StorageTypes, targetRegistry: string): Promise<{ scriptUrl: string }> {
         try {
             // ToDo: check everething before publishing
+            const swarmStorage = new SwarmModuleStorage();
+            const testStorage = new HttpModuleStorage();
 
             // Dist file publishing
             const dist = await this._storageAggregator.getResource(vi.dist);
             const distBlob = new Blob([dist], { type: "text/javascript" });
-            const distUrl = (targetStorage === StorageTypes.TestRegsitry) ? await saveToTestRegistry(distBlob, targetRegistry) : await saveToSwarm(distBlob);
+            const distUrl = (targetStorage === StorageTypes.TestRegsitry) ? await testStorage.save(distBlob, targetRegistry) : await swarmStorage.save(distBlob);
 
             // Dist file  hashing
             const distBuffer = await (distBlob as any).arrayBuffer();
@@ -175,7 +179,7 @@ export default class FeatureService {
                 // Icon file publishing
                 const icon = await this._storageAggregator.getResource(mi.icon);
                 const iconBlob = new Blob([icon], { type: "text/javascript" });
-                const iconUrl = (targetStorage === StorageTypes.TestRegsitry) ? await saveToTestRegistry(iconBlob, targetRegistry) : await saveToSwarm(iconBlob);
+                const iconUrl = (targetStorage === StorageTypes.TestRegsitry) ? await testStorage.save(iconBlob, targetRegistry) : await swarmStorage.save(iconBlob);
 
                 // Icon file  hashing
                 const iconBuffer = await (iconBlob as any).arrayBuffer();
@@ -236,31 +240,4 @@ export default class FeatureService {
         const registry = this._moduleManager.registryAggregator.getRegistryByUri(registryUri);
         await registry.removeContextId(moduleName, location);
     }
-}
-
-async function saveToTestRegistry(blob: Blob, registryUrl: string) {
-    var form = new FormData();
-    form.append('file', blob);
-
-    const response = await fetch(`${registryUrl}/storage`, {
-        method: 'POST',
-        body: form
-    });
-
-    const json = await response.json();
-    if (!json.success) throw new Error(json.message || "Error in saveToStorage");
-    const url = `${registryUrl}/storage/${json.data}`;
-    return url;
-}
-
-async function saveToSwarm(blob: Blob) {
-    const response = await fetch("https://swarm-gateways.net/bzz:/", {
-        method: 'POST',
-        body: blob
-    });
-
-    const text = await response.text();
-    if (text.length !== 64) throw new Error("Swarm gateway returned invalid hash.");
-    const url = "bzz://" + text;
-    return url;
 }

@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as extension from 'extensionizer';
 import { initBGFunctions } from "chrome-extension-message-wrapper";
-import { Popup, Segment, List, Label, Input, Checkbox, Icon, Header } from "semantic-ui-react";
+import { Popup, Segment, List, Label, Input, Checkbox, Icon, Header, Button } from "semantic-ui-react";
 
 import { isValidUrl } from '../helpers';
 
@@ -19,6 +19,9 @@ interface ISettingsState {
     trustedUsers: { account: string }[];
     trustedUserInput: string;
     trustedUserInputError: string;
+    userSettingsInput: string;
+    userSettingsInputError: string;
+    userSettingsLoading: boolean;
     devMode: boolean;
 }
 
@@ -35,7 +38,10 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
             trustedUsers: [],
             trustedUserInput: '',
             trustedUserInputError: null,
-            devMode: props.devMode
+            devMode: props.devMode,
+            userSettingsInput: '',
+            userSettingsInputError: null,
+            userSettingsLoading: false
         };
     }
 
@@ -108,6 +114,35 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const { removeTrustedUser } = await initBGFunctions(extension);
         await removeTrustedUser(account);
         this.loadTrustedUsers();
+    }
+
+    async loadUserSettings() {
+        this.setState({ userSettingsLoading: true });
+        const { loadUserSettings } = await initBGFunctions(extension);
+
+        try {
+            await loadUserSettings(this.state.userSettingsInput);
+            this.setState({ userSettingsInput: '' });
+            location.reload();
+        } catch (msg) {
+            this.setState({ userSettingsInputError: msg });
+        } finally {
+            this.setState({ userSettingsLoading: false });
+        }
+    }
+
+    async saveUserSettings() {
+        this.setState({ userSettingsLoading: true });
+        const { saveUserSettings } = await initBGFunctions(extension);
+
+        try {
+            const url = await saveUserSettings();
+            this.setState({ userSettingsInput: url });
+        } catch (msg) {
+            this.setState({ userSettingsInputError: msg });
+        } finally {
+            this.setState({ userSettingsLoading: false });
+        }
     }
 
     render() {
@@ -188,6 +223,27 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                             </List.Item>
                         ))}
                     </List>
+
+                    <Header as='h5'>User Settings</Header>
+                    <Input
+                        size='mini'
+                        fluid
+                        placeholder='Swarm Address...'
+                        error={!!this.state.userSettingsInputError}
+                        action
+                        iconPosition='left'
+                        loading={this.state.userSettingsLoading}
+                    >
+                        <Icon name='cog'></Icon>
+                        <input
+                            value={this.state.userSettingsInput}
+                            onChange={(e) => this.setState({ userSettingsInput: e.target.value, userSettingsInputError: null })}
+                        />
+                        <Button.Group size='mini'>
+                            <Button disabled={this.state.userSettingsLoading} onClick={() => this.loadUserSettings()}>Load</Button>
+                            <Button disabled={this.state.userSettingsLoading} color='blue' onClick={() => this.saveUserSettings()}>Save</Button>
+                        </Button.Group>
+                    </Input>
 
                     <Header as='h4'>Advanced</Header>
                     <Checkbox toggle label='Development Mode' checked={devMode} onChange={() => this.setDevMode(!devMode)} />

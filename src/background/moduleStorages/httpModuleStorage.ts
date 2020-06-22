@@ -12,4 +12,19 @@ export class HttpModuleStorage implements ModuleStorage {
 
         return buffer;
     }
+
+    public async save(blob: Blob, registryUrl: string) {
+        var form = new FormData();
+        form.append('file', blob);
+    
+        const response = await fetch(`${registryUrl}/storage`, {
+            method: 'POST',
+            body: form
+        });
+    
+        const json = await response.json();
+        if (!json.success) throw new Error(json.message || "Error in saveToStorage");
+        const url = `${registryUrl}/storage/${json.data}`;
+        return url;
+    }
 }

@@ -6,6 +6,7 @@ import { Swiper } from "./swiper";
 import { AutoProperties, EventDef, Connection } from "./connection";
 import { WsJsonRpc } from "./wsJsonRpc";
 import { OverlayManager } from "./overlayManager";
+import { AppStorage } from "./appStorage";
 
 export default class Core {
     public overlayManager = new OverlayManager();
@@ -229,4 +230,6 @@ export default class Core {
     // ToDo: remove it or implement!
     contextStarted(contextIds: any[], parentContext?: string): void { }
     contextFinished(contextIds: any[], parentContext?: string): void { }
+
+    public storage: AppStorage;
 }

@@ -75,7 +75,15 @@ extension.runtime.onMessage.addListener(
     setIntro: (intro) => globalConfigService.setIntro(intro),
     getTrustedUsers: () => globalConfigService.getTrustedUsers(),
     addTrustedUser: (account) => globalConfigService.addTrustedUser(account),
-    removeTrustedUser: (account) => globalConfigService.removeTrustedUser(account)
+    removeTrustedUser: (account) => globalConfigService.removeTrustedUser(account),
+
+    // UserSettings (AppStorage)
+    getUserSettings: (moduleName, key) => globalConfigService.getUserSettings(moduleName, key),
+    setUserSettings: (moduleName, key, value) => globalConfigService.setUserSettings(moduleName, key, value),
+    removeUserSettings: (moduleName, key) => globalConfigService.removeUserSettings(moduleName, key),
+    clearUserSettings: (moduleName) => globalConfigService.clearUserSettings(moduleName),
+    loadUserSettings: (url) => globalConfigService.loadUserSettings(url),
+    saveUserSettings: () => globalConfigService.saveUserSettings()
   })
 );
 

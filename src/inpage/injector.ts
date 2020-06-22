@@ -7,6 +7,7 @@ import * as extension from 'extensionizer';
 import { IResolver, IContentAdapter, IFeature } from './types';
 import { areModulesEqual } from "../common/helpers";
 import VersionInfo from "../background/models/versionInfo";
+import { AppStorage } from "./appStorage";
 
 export class Injector {
     public availableContextIds: string[] = [];
@@ -102,7 +103,8 @@ export class Injector {
                 contextFinished: (contextIds: any[], parentContext: string) => this._setContextActivivty(contextIds, window.location.hostname + (parentContext ? `/${parentContext}` : ""), false),
                 connect: core.connect.bind(core),
                 overlay: core.overlay.bind(core),
-                wallet: core.wallet.bind(core)
+                wallet: core.wallet.bind(core),
+                storage: new AppStorage(manifest.name)
             };
 
             const execScript = new Function('Core', 'SubscribeOptions', 'Inject', 'Injectable', md.script);
