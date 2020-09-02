@@ -23,7 +23,8 @@ module.exports = {
     sowa: path.join(__dirname, "src/sowa/index.tsx"),
     deploy: path.join(__dirname, "src/deploy/index.tsx"),
     starter: path.join(__dirname, "src/starter/index.tsx"),
-    settings: path.join(__dirname, "src/settings/index.tsx")
+    settings: path.join(__dirname, "src/settings/index.tsx"),
+    preloader: path.join(__dirname, "src/preloader/index.ts")
   },
   output: {
     path: path.join(__dirname, "build"),

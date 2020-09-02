@@ -28,6 +28,16 @@
       	"inpage.js"
       ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+      	"preloader.js"
+      ],
+      "run_at": "document_start"
     }
   ],
   "web_accessible_resources": [
