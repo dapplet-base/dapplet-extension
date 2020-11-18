@@ -6,19 +6,20 @@ import './index.scss';
 import { initBGFunctions } from "chrome-extension-message-wrapper";
 import { HashRouter, Route, Link, Redirect, Switch } from "react-router-dom";
 import { WalletConnectPairing } from "./components/walletConnectPairing";
+import { WalletLinkPairing } from "./components/walletLinkPairing";
 import { browser } from "webextension-polyfill-ts";
 import * as logger from '../common/logger';
 
 window.onerror = logger.log;
 
-interface IIndexProps {
+interface IProps {
 }
 
-interface IIndexState {
+interface IState {
     isConnected: boolean
 }
 
-class Index extends React.Component<IIndexProps, IIndexState> {
+class Index extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
 
@@ -47,6 +48,7 @@ class Index extends React.Component<IIndexProps, IIndexState> {
                     <Switch>
                         <Route exact path="/" component={SelectWallet} />
                         <Route path="/walletconnect" component={WalletConnectPairing} />
+                        <Route path="/walletlink" component={WalletLinkPairing} />
                     </Switch>
                 )}
             </HashRouter>

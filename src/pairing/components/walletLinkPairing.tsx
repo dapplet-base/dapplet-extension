@@ -30,7 +30,7 @@ interface ISelectWalletState {
     toBack: boolean;
 }
 
-export class WalletConnectPairing extends React.Component<ISelectWalletProps, ISelectWalletState> {
+export class WalletLinkPairing extends React.Component<ISelectWalletProps, ISelectWalletState> {
     private bus: Bus = null;
 
     constructor(props) {
@@ -99,8 +99,8 @@ export class WalletConnectPairing extends React.Component<ISelectWalletProps, IS
             <Container text>
                 {!isPaired ? (
                     <React.Fragment>
-                        <Header as='h2' style={{ marginTop: '1em' }}>WalletConnect Pairing</Header>
-                        <p>Scan QR code with a WalletConnect-compatible wallet</p>
+                        <Header as='h2' style={{ marginTop: '1em' }}>WalletLink Pairing</Header>
+                        <p>Scan QR code with a WalletLink-compatible wallet</p>
                         {svgPath ? (<svg viewBox="1 1 53 53"><path d={svgPath} /></svg>) : null}
                         <Button onClick={() => window.location.hash = '/'}>Back</Button>
                     </React.Fragment>
@@ -113,7 +113,7 @@ export class WalletConnectPairing extends React.Component<ISelectWalletProps, IS
                                     <p>Chain ID: {wallet?.chainId}</p>
                                     <p>Peer Name: {wallet?.peerMeta?.name}</p>
                                     <p>Peer URL: {wallet?.peerMeta?.url}</p>
-                                    <p>SOWA Compatibility: {walletInfo?.compatible ? "Yes" : "No"}</p>
+                                    <p>SOWA Compatibility: {walletInfo?.compatible ? "Yes": "No"}</p>
                                     <p>SOWA Protocol Version: {walletInfo?.protocolVersion || "UNKNOWN"}</p>
                                     <p>SOWA Engine Version: {walletInfo?.engineVersion || "UNKNOWN"}</p>
                                     <p>Device Manufacturer: {walletInfo?.device?.manufacturer || "UNKNOWN"}</p>

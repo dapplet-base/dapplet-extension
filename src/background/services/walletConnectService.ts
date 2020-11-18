@@ -8,6 +8,20 @@ import { browser } from "webextension-polyfill-ts";
 import { transactionCreated, transactionRejected } from "./notificationService";
 import * as logger from '../../common/logger';
 import { getCurrentTab } from "../../common/helpers";
+import { WalletLink } from "walletlink"
+
+export const walletLink = new WalletLink({
+    appName: "My Awesome DApp",
+    appLogoUrl: "https://example.com/logo.png",
+    darkMode: false
+})
+
+export const ethereum = walletLink.makeWeb3Provider(
+    "https://rinkeby.infura.io/v3/eda881d858ae4a25b2dfbbd0b4629992", 4
+)
+
+console.log('ethereum', ethereum)
+
 
 const bridge = "https://bridge.walletconnect.org";
 
@@ -135,7 +149,7 @@ const getConnector = () => {
             if (error) {
                 throw error;
             }
-    
+
             localStorage.clear();
             console.log("[DAPPLETS]: wallet disconnected, localstorage cleaned"); // tslint:disable-line
         });
