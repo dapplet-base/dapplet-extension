@@ -36,7 +36,8 @@
     "popup.html",
     "deploy.html",
     "starter.html",
-    "settings.html"
+    "settings.html",
+    "overlay.html"
   ],
   "permissions": [
     "tabs",

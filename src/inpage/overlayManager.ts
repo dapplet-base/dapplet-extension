@@ -1,3 +1,5 @@
+import { browser } from 'webextension-polyfill-ts';
+import FrameRpc from '../common/frameRpc';
 import { Overlay } from './overlay';
 
 const PageNavClass = 'dapplets-overlay-nav';
@@ -73,6 +75,16 @@ export class OverlayManager {
         nav.appendChild(contentList);
         this._contentList = contentList;
 
+        const frame = document.createElement('iframe');
+        frame.src = browser.extension.getURL('overlay.html');
+        panel.appendChild(frame);
+
+        
+        const rpc = new FrameRpc({
+            greet: (a) => `Hello, ${a}!`
+        }, frame.contentWindow);
+
+        console.log('rpc parent', rpc);
     }
 
     /**

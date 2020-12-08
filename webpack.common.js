@@ -23,7 +23,8 @@ module.exports = {
     sowa: path.join(__dirname, "src/sowa/index.tsx"),
     deploy: path.join(__dirname, "src/deploy/index.tsx"),
     starter: path.join(__dirname, "src/starter/index.tsx"),
-    settings: path.join(__dirname, "src/settings/index.tsx")
+    settings: path.join(__dirname, "src/settings/index.tsx"),
+    overlay: path.join(__dirname, "src/overlay/index.tsx")
   },
   output: {
     path: path.join(__dirname, "build"),
@@ -112,6 +113,9 @@ module.exports = {
         }, {
           from: "src/settings/index.html",
           to: "settings.html"
+        }, {
+          from: "src/overlay/index.html",
+          to: "overlay.html"
         }
       ]
     }),

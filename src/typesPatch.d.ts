@@ -18,6 +18,8 @@ declare module "*.svg" {
     export default value;
 }
 
+declare module '*.css';
+
 declare var EXTENSION_VERSION: string;
 
 interface ObjectConstructor {

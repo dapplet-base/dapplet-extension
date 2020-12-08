@@ -4,8 +4,12 @@ import { browser } from "webextension-polyfill-ts";
 import './index.scss';
 import * as logger from '../common/logger';
 
+// import Overlay from './overlay/index';
+
 window.onerror = logger.log;
 
+// const overlay = new Overlay();
+// overlay.createTab("chrome-extension://ogcojbmjgfbdhgoedagklhoginpblbon/pairing.html", 'Wallet');
 const core = new Core(); // ToDo: is it global for all modules?
 const injector = new Injector(core);
 
