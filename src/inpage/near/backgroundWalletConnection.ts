@@ -3,7 +3,6 @@ import { serialize } from 'borsh';
 import { browser } from "webextension-polyfill-ts";
 import { initBGFunctions } from "chrome-extension-message-wrapper";
 import { CustomConnectedWalletAccount } from './customConnectedWalletAccount';
-import { waitClosingTab } from '../../common/helpers';
 
 const LOGIN_WALLET_URL_SUFFIX = '/login/';
 const PENDING_ACCESS_KEY_PREFIX = 'pending_key'; // browser storage key for a pending access key (i.e. key has been generated but we are not sure it was added yet)
@@ -40,7 +39,7 @@ export class BackgroundWalletConnection extends nearAPI.WalletConnection {
             .join(','));
         newUrl.searchParams.set('callbackUrl', callbackUrl || currentUrl.href);
 
-        const { createTab } = await initBGFunctions(browser);
+        const { createTab, waitClosingTab } = await initBGFunctions(browser);
         const tab = await createTab(newUrl.toString());
         await waitClosingTab(tab.id, tab.windowId);
     }
