@@ -36,10 +36,15 @@ export class CustomConnectedWalletAccount extends ConnectedWalletAccount {
         const callbackUrl = browser.extension.getURL(`callback.html?request_id=${requestId}`);
 
         const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true });
-        
-        await this.walletConnection.requestSignTransactions([transaction], callbackUrl);
 
-        const callbackTab = await waitTab(callbackUrl);
+        let callbackTab = null;
+        const waitTabPromise = waitTab(callbackUrl).then(x => callbackTab = x);
+        const requestPromise = this.walletConnection.requestSignTransactions([transaction], callbackUrl);
+
+        await Promise.race([waitTabPromise, requestPromise]);
+
+        if (!callbackTab) throw new Error(`User rejected the transaction.`);
+
         await browser.tabs.update(currentTab.id, { active: true });
         await browser.tabs.remove(callbackTab.id);
 

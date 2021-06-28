@@ -3,6 +3,7 @@ import { serialize } from 'borsh';
 import { browser } from "webextension-polyfill-ts";
 import { initBGFunctions } from "chrome-extension-message-wrapper";
 import { CustomConnectedWalletAccount } from './customConnectedWalletAccount';
+import { waitClosingTab } from '../../common/helpers';
 
 const LOGIN_WALLET_URL_SUFFIX = '/login/';
 const PENDING_ACCESS_KEY_PREFIX = 'pending_key'; // browser storage key for a pending access key (i.e. key has been generated but we are not sure it was added yet)
@@ -26,26 +27,7 @@ export class BackgroundWalletConnection extends nearAPI.WalletConnection {
         successUrl?: string,
         failureUrl?: string
     ) {
-        let options: SignInOptions;
-        if (typeof contractIdOrOptions === 'string') {
-            options = { contractId: contractIdOrOptions, successUrl, failureUrl };
-        } else {
-            options = contractIdOrOptions as SignInOptions;
-        }
-
-        const currentUrl = new URL(window.location.href);
-        const newUrl = new URL(this._walletBaseUrl + LOGIN_WALLET_URL_SUFFIX);
-        newUrl.searchParams.set('success_url', options.successUrl || currentUrl.href);
-        newUrl.searchParams.set('failure_url', options.failureUrl || currentUrl.href);
-        if (options.contractId) {
-            newUrl.searchParams.set('contract_id', options.contractId);
-            const accessKey = nearAPI.utils.KeyPair.fromRandom('ed25519');
-            newUrl.searchParams.set('public_key', accessKey.getPublicKey().toString());
-            await this._keyStore.setKey(this._networkId, PENDING_ACCESS_KEY_PREFIX + accessKey.getPublicKey(), accessKey);
-        }
-
-        const { createTab } = await initBGFunctions(browser);
-        await createTab(newUrl.toString());
+        throw new Error('requestSignIn is not implemented');
     }
 
     async requestSignTransactions(transactions: nearAPI.transactions.Transaction[], callbackUrl?: string) {
@@ -59,7 +41,8 @@ export class BackgroundWalletConnection extends nearAPI.WalletConnection {
         newUrl.searchParams.set('callbackUrl', callbackUrl || currentUrl.href);
 
         const { createTab } = await initBGFunctions(browser);
-        await createTab(newUrl.toString());
+        const tab = await createTab(newUrl.toString());
+        await waitClosingTab(tab.id, tab.windowId);
     }
 
     async completeSignIn(accountId, publicKey, allKeys) {

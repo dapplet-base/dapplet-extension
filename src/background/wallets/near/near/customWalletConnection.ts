@@ -2,6 +2,7 @@ import * as nearAPI from 'near-api-js';
 import { serialize } from 'borsh';
 import { browser } from 'webextension-polyfill-ts';
 import { CustomConnectedWalletAccount } from './customConnectedWalletAccount';
+import { waitClosingTab } from '../../../../common/helpers';
 
 const LOGIN_WALLET_URL_SUFFIX = '/login/';
 const PENDING_ACCESS_KEY_PREFIX = 'pending_key'; // browser storage key for a pending access key (i.e. key has been generated but we are not sure it was added yet)
@@ -38,7 +39,8 @@ export class CustomWalletConnection extends nearAPI.WalletConnection {
             await this._keyStore.setKey(this._networkId, PENDING_ACCESS_KEY_PREFIX + accessKey.getPublicKey(), accessKey);
         }
 
-        browser.tabs.create({ url: newUrl.toString() });
+        const tab = await browser.tabs.create({ url: newUrl.toString() });
+        await waitClosingTab(tab.id, tab.windowId);
     }
 
     async requestSignTransactions(transactions: nearAPI.transactions.Transaction[], callbackUrl?: string) {
@@ -51,7 +53,8 @@ export class CustomWalletConnection extends nearAPI.WalletConnection {
             .join(','));
         newUrl.searchParams.set('callbackUrl', callbackUrl || currentUrl.href);
 
-        browser.tabs.create({ url: newUrl.toString() });
+        const tab = await browser.tabs.create({ url: newUrl.toString() });
+        await waitClosingTab(tab.id, tab.windowId);
     }
 
     async completeSignIn(accountId, publicKey, allKeys) {
