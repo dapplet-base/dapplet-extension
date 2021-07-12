@@ -1,4 +1,4 @@
-import { browser } from "webextension-polyfill-ts";
+import { browser, Management } from "webextension-polyfill-ts";
 import { initBGFunctions } from "chrome-extension-message-wrapper";
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -19,7 +19,9 @@ tracing.startTracing();
 interface IIndexProps { }
 
 interface IIndexState {
-    
+    previousExts: Management.ExtensionInfo[];
+    isLoading: boolean;
+    isUninstalling: boolean;
 }
 
 class Index extends React.Component<IIndexProps, IIndexState> {
@@ -28,12 +30,36 @@ class Index extends React.Component<IIndexProps, IIndexState> {
         super(props);
 
         this.state = {
+            previousExts: [],
+            isLoading: true,
+            isUninstalling: false
         };
+    }
+
+    async componentDidMount() {
+        const exts = await browser.management.getAll();
+        const currentExtId = browser.runtime.id;
+        const previousExts = exts.filter(x => x.name === 'Dapplets' && x.id !== currentExtId);    
+        this.setState({ isLoading: false, previousExts });
+    }
+
+    private _confirmHandler() {
+        this.setState({ isUninstalling: true });
+        this.state.previousExts.forEach(x => (browser.management as any).uninstall(x.id, { showConfirmDialog: true }));
+        this.setState({ isUninstalling: false });
+        window.close();
+    }
+
+    private _declineHandler() {
+        window.close();
     }
 
     render() {
         return <div>
-            Welcome Page
+            Found {this.state.previousExts.length} another instance(s) of the current extension. Do you want to uninstall it?
+            <button onClick={() => this._confirmHandler()}>Yes</button>
+            <button onClick={() => this._declineHandler()}>No</button>
+            {this.state.previousExts.map((x, i) => <div key={i}>{x.id}</div>)}
         </div>;
     }
 }
